@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumeFit - ATS Resume Analyzer</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons for clean UI elements -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-inner">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-file-circle-check"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1>Resume<span>Fit</span></h1>
+                        <p class="tagline">ATS Resume Analyzer & Job Fit Scorer</p>
+                    </div>
+                </div>
+                <div class="header-badges">
+                    <span class="pill-badge"><i class="fa-solid fa-bolt"></i> Instant Analysis</span>
+                    <span class="pill-badge"><i class="fa-solid fa-shield-halved"></i> 100% Private & Local</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- App Intro / Hero -->
+            <section class="intro-section">
+                <h2>Optimize Your Resume for Applicant Tracking Systems</h2>
+                <p>Upload your resume in PDF format, paste the target job description, and get instant ATS compatibility scoring with actionable improvement areas.</p>
+            </section>
+
+            <!-- Input Form Section -->
+            <form id="analyzer-form" class="analyzer-form">
+                <div class="grid-layout">
+                    <!-- Left: Resume PDF Upload -->
+                    <div class="card upload-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <span class="step-badge">1</span>
+                                <h3>Upload Resume</h3>
+                            </div>
+                            <span class="file-format-badge"><i class="fa-regular fa-file-pdf"></i> PDF only</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="dropzone" id="pdf-dropzone">
+                                <input type="file" id="resume-file-input" name="resume_file" accept=".pdf" class="file-input-hidden">
+                                
+                                <div class="dropzone-default" id="dropzone-default">
+                                    <div class="upload-icon-wrapper">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    </div>
+                                    <h4>Drag & drop your PDF resume here</h4>
+                                    <p class="dropzone-subtext">or click to browse from your computer</p>
+                                    <button type="button" class="btn btn-outline btn-sm browse-btn" id="browse-btn">
+                                        <i class="fa-solid fa-folder-open"></i> Choose PDF File
+                                    </button>
+                                </div>
+
+                                <div class="dropzone-file-info hidden" id="dropzone-file-info">
+                                    <div class="file-preview-icon">
+                                        <i class="fa-solid fa-file-pdf"></i>
+                                    </div>
+                                    <div class="file-details">
+                                        <p class="file-name" id="selected-file-name">my_resume.pdf</p>
+                                        <p class="file-size" id="selected-file-size">145 KB</p>
+                                    </div>
+                                    <button type="button" class="btn-icon remove-file-btn" id="remove-file-btn" title="Remove file">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Sample Demo Toggle -->
+                            <div class="sample-helper">
+                                <span class="helper-text">Don't have a PDF right now?</span>
+                                <button type="button" class="btn-text" id="use-sample-resume-btn">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Load Sample Resume
+                                </button>
+                            </div>
+                            <input type="hidden" id="sample-resume-text" name="resume_text" value="">
+                        </div>
+                    </div>
+
+                    <!-- Right: Job Description -->
+                    <div class="card jd-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <span class="step-badge">2</span>
+                                <h3>Target Job Description</h3>
+                            </div>
+                            <button type="button" class="btn-text btn-sm" id="load-sample-jd-btn" title="Paste a realistic sample job description">
+                                <i class="fa-solid fa-paste"></i> Load Sample JD
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="textarea-wrapper">
+                                <textarea 
+                                    id="job-description-input" 
+                                    name="job_description" 
+                                    rows="9" 
+                                    placeholder="Paste the target job description here (responsibilities, required skills, technical requirements, qualifications)..."
+                                    required
+                                ></textarea>
+                            </div>
+                            <div class="textarea-footer">
+                                <span id="jd-word-count" class="counter-text"><i class="fa-solid fa-font"></i> 0 words</span>
+                                <button type="button" class="btn-text-subtle" id="clear-jd-btn"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg" id="analyze-btn">
+                        <span class="btn-text-content">
+                            <i class="fa-solid fa-chart-simple"></i> Analyze Resume
+                        </span>
+                        <div class="spinner hidden" id="analyze-spinner"></div>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Error Banner -->
+            <div class="alert-box error-alert hidden" id="error-banner">
+                <i class="fa-solid fa-circle-exclamation alert-icon"></i>
+                <div class="alert-content">
+                    <strong id="error-title">Analysis Failed</strong>
+                    <p id="error-message">Something went wrong. Please check your inputs.</p>
+                </div>
+                <button type="button" class="alert-close" id="close-error-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Results Section (Dynamic) -->
+            <section id="results-section" class="results-section hidden">
+                <div class="results-header">
+                    <div class="results-title-group">
+                        <span class="pill-badge pill-success"><i class="fa-solid fa-check"></i> Analysis Complete</span>
+                        <h2>Resume Compatibility Report</h2>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" id="reanalyze-btn">
+                        <i class="fa-solid fa-arrow-up"></i> Analyze Another Resume
+                    </button>
+                </div>
+
+                <!-- Top Score Overview Grid -->
+                <div class="results-overview-grid">
+                    <!-- Big ATS Score Gauge Card -->
+                    <div class="card score-hero-card" id="score-hero-card">
+                        <div class="score-hero-inner">
+                            <div class="gauge-container">
+                                <svg class="score-gauge" viewBox="0 0 160 160">
+                                    <circle class="gauge-bg" cx="80" cy="80" r="68"></circle>
+                                    <circle class="gauge-progress" id="gauge-progress-circle" cx="80" cy="80" r="68"></circle>
+                                </svg>
+                                <div class="gauge-content">
+                                    <span class="score-number" id="ats-score-display">0</span>
+                                    <span class="score-max">/ 100</span>
+                                </div>
+                            </div>
+                            <div class="score-details">
+                                <div class="score-status-badge" id="match-level-badge">Calculating...</div>
+                                <h3 class="score-verdict-title" id="score-verdict-title">ATS Compatibility Score</h3>
+                                <p class="score-verdict-desc" id="score-verdict-desc">Analyzing keyword alignment and structure...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Statistics Cards -->
+                    <div class="stats-cards-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon icon-matched">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-val" id="stat-matched-keywords">0</span>
+                                <span class="stat-label">Matched Keywords</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon icon-missing">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-val" id="stat-missing-keywords">0</span>
+                                <span class="stat-label">Missing Keywords</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon icon-length">
+                                <i class="fa-solid fa-file-lines"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-val" id="stat-word-count">0</span>
+                                <span class="stat-label">Resume Words (<span id="stat-word-status">Optimal</span>)</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon icon-verbs">
+                                <i class="fa-solid fa-bolt-lightning"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-val" id="stat-action-verbs">0</span>
+                                <span class="stat-label">Action Verbs & Impact</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-score Breakdown Progress Bars -->
+                <div class="card subscores-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-chart-pie"></i> Detailed Score Breakdown</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="breakdown-grid">
+                            <div class="breakdown-item">
+                                <div class="breakdown-label-row">
+                                    <span><i class="fa-solid fa-key"></i> Target Keyword Match (50% weight)</span>
+                                    <strong id="bar-val-keywords">0%</strong>
+                                </div>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" id="bar-fill-keywords" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label-row">
+                                    <span><i class="fa-solid fa-code"></i> Technical & Hard Skills Match (25% weight)</span>
+                                    <strong id="bar-val-tech">0%</strong>
+                                </div>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" id="bar-fill-tech" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label-row">
+                                    <span><i class="fa-solid fa-table-list"></i> Structure & Essential Sections (15% weight)</span>
+                                    <strong id="bar-val-structure">0%</strong>
+                                </div>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" id="bar-fill-structure" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label-row">
+                                    <span><i class="fa-solid fa-arrow-trend-up"></i> Action Verbs & Quantifiable Impact (10% weight)</span>
+                                    <strong id="bar-val-impact">0%</strong>
+                                </div>
+                                <div class="progress-bar-track">
+                                    <div class="progress-bar-fill" id="bar-fill-impact" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keywords Match vs Missing Section -->
+                <div class="card keywords-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-tags"></i> Keyword & Skill Analysis</h3>
+                        <div class="filter-pills">
+                            <button type="button" class="filter-btn active" data-filter="all">All</button>
+                            <button type="button" class="filter-btn" data-filter="matched">Matched (<span id="pill-count-matched">0</span>)</button>
+                            <button type="button" class="filter-btn" data-filter="missing">Missing (<span id="pill-count-missing">0</span>)</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="keywords-columns">
+                            <!-- Matched Column -->
+                            <div class="keyword-group" id="group-matched">
+                                <h4><i class="fa-solid fa-circle-check text-success"></i> Matched Keywords in Resume</h4>
+                                <div class="chips-container" id="matched-chips-container">
+                                    <!-- Dynamic badges -->
+                                </div>
+                            </div>
+
+                            <!-- Missing Column -->
+                            <div class="keyword-group" id="group-missing">
+                                <h4><i class="fa-solid fa-triangle-exclamation text-warning"></i> Missing Target Keywords (Add to Resume)</h4>
+                                <div class="chips-container" id="missing-chips-container">
+                                    <!-- Dynamic badges -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Improvement Areas Section -->
+                <div class="card improvements-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h3><i class="fa-solid fa-list-check"></i> Areas for Improvement</h3>
+                        </div>
+                        <span class="sub-header-text">Actionable steps to increase your ATS compatibility</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="improvements-list" id="improvements-list-container">
+                            <!-- Dynamic improvement items -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ATS Section Presence Checks -->
+                <div class="card sections-check-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-clipboard-check"></i> ATS Section Detection</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="section-checks-grid" id="section-checks-grid">
+                            <!-- Dynamic checklist items -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-inner">
+                <p><strong>ResumeFit</strong> &copy; 2026 &bull; ATS Resume Analyzer</p>
+                <p class="footer-note">Designed for fast, clean, and private local resume optimization.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
