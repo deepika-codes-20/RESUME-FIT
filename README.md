@@ -53,8 +53,8 @@ Double-click `run.bat`. It will check dependencies and automatically open `http:
 
 ### Option B: Manual Command Line Launch
 
-1. Open your terminal / command prompt locate for the file
-2. 2. Install required packages:
+1. Open your terminal / command prompt in this directory (`your-project-folder/RESUME-FIT`).
+2. Install required packages:
    ```bash
    pip install -r requirements.txt
    ```
